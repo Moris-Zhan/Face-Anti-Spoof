@@ -1,0 +1,64 @@
+task_name = 
+fold = IR_A
+data_root = /home/leyan/DataSet/CASIA-CeFA/phase1/
+exp_name = exp1_phase2
+data_list = data/phase2/4_1/
+exp = 4_1
+net_type = PipeNet_PF4
+out_root = work_dirs/
+out_path = work_dirs/exp1_phase2/4_1/PipeNet_PF4
+writer = <torch.utils.tensorboard.writer.SummaryWriter object at 0x7fa935e35eb0>
+nthreads = 64
+batch_size = 16
+ngpu = 2
+freeze_epoch = 0
+optimizer_name = Adam
+weight_decay = 0
+lr = 2e-05
+lr_decay_lvl = 0.5
+lr_decay_period = 50
+lr_type = cosine_repeat_lr
+num_epochs = 100
+resume = model_36.pth
+evaluate = False
+val_save = False
+debug = 0
+manual_seed = 2
+log_batch_interval = 20
+log_checkpoint = 20
+pretrained = None
+classifier_type = linear
+loss_type = cce
+fc = True
+alpha_scheduler_type = None
+nclasses = 2
+fake_class_weight = 1
+visdom_port = 8097
+git_commit_sha = 3ab79d6c8ec9b280f5fbdd7a8a363a6191fd65ce
+img_size = 112
+train_transform = Compose(
+    MergeItems(same_label=True, p=0.1)
+    CustomRandomRotation(degrees=[-30.0, 30.0], interpolation=bilinear, expand=False, fill=0)
+    CustomResize(size=(125, 125), interpolation=bilinear, max_size=None, antialias=None)
+    RandomApply(
+    p=0.1
+    CustomCutout(n_holes=1, min_size=25, max_size=75)
+)
+    CustomRandomResizedCrop(size=(112, 112), scale=(0.5, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear)
+    CustomRandomHorizontalFlip(p=0.5)
+    RandomApply(
+    p=0.2
+    CustomColorJitter(brightness=[0.75, 1.25], contrast=[0.75, 1.25], saturation=[0.75, 1.25], hue=[-0.125, 0.125])
+)
+    CustomRandomGrayscale(p=0.1)
+    CustomToTensor()
+    CustomNormalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.201])
+)
+test_transform = Compose(
+    CustomResize(size=(125, 125), interpolation=bilinear, max_size=None, antialias=None)
+    CustomRotate(rotate_angle=0)
+    CustomRandomHorizontalFlip(p=0)
+    CustomCrop(size=(112, 112), crop_index=0)
+    CustomToTensor()
+    CustomNormalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.201])
+)

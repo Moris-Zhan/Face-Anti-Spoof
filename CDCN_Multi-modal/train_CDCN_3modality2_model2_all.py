@@ -36,16 +36,11 @@ from utils import init_logging, get_threshold
 from utils import roc_curve, get_err_threhold
 from skimage.transform import resize, rescale
 # Dataset root
-image_dir = '/home/leyan/DataSet/CASIA-CeFA/phase1'         
+image_dir = '/home/zimdytsai/leyan/DataSet/CASIA-CeFA/phase1'      
+        
    
-train_list = f"{image_dir}/4@1_train.txt"
-val_list = f'{image_dir}/4@1_dev_ref.txt'
-
-#train_list = f'{image_dir}/4@2_train.txt'
-#val_list = f'{image_dir}/4@2_dev_ref.txt'
-
-#train_list = f'{image_dir}/4@3_train.txt'
-#val_list = f'{image_dir}/4@3_dev_ref.txt'
+train_list = f"{image_dir}/train.txt"
+val_list = f'{image_dir}/dev.txt'
 
 def perf_measure(val_labels, val_scores, thres):
     fpr,tpr,threshold = roc_curve(val_labels, val_scores, pos_label=1)
@@ -378,6 +373,8 @@ def train_test():
 
     ACER_save = 1.0
     best_acc = 0.0
+    global_step = 0
+    gradient_acc = 2
     
     for epoch in range(args.epochs):  # loop over the dataset multiple times
         scheduler.step()
@@ -401,13 +398,12 @@ def train_test():
         nums_train = len(dataloader_train)
 
         for i, sample_batched in enumerate(dataloader_train):
+            global_step += 1
             # get the inputs
             inputs, binary_mask, spoof_label = sample_batched['image_x'].cuda(), sample_batched['binary_mask'].cuda(), sample_batched['spoofing_label'].cuda() 
             inputs_ir, inputs_depth = sample_batched['image_ir'].cuda(), sample_batched['image_depth'].cuda()
             sn = sample_batched['string_name'][0].replace("/","_")
-            
-            optimizer.zero_grad()        
-
+                               
             # forward + backward + optimize
             # map_x, embedding, x_Block1, x_Block2, x_Block3, x_input =  model(inputs, inputs_ir, inputs_depth)
             map_x, embedding, (x_Block1, x_Block2, x_Block3, x_input), \
@@ -421,8 +417,9 @@ def train_test():
             loss =  absolute_loss + contrastive_loss
              
             loss.backward()
-            
-            optimizer.step()
+            if global_step % gradient_acc == 0:
+                optimizer.step()
+                optimizer.zero_grad() 
             
             n = inputs.size(0)
             loss_absolute.update(absolute_loss.data, n)
@@ -456,7 +453,7 @@ def train_test():
     
             
         epoch_test = 1
-        if epoch>10 and epoch % epoch_test == epoch_test-1:   
+        if (((epoch+1) % 1 == 0) and epoch % epoch_test == epoch_test-1) or epoch < 10:   
         # if epoch>-1 and epoch % epoch_test == epoch_test-1:  
             model.eval()
             
@@ -483,7 +480,7 @@ def train_test():
                     optimizer.zero_grad()
                                         
                     map_score = 0.0
-                    FeatureMapTList = []                    
+                    # FeatureMapTList = []                    
                     for t, frame_t in enumerate (range(inputs.shape[1])):
                         orign_img = inputs[:,frame_t,:,:,:]
                         map_x, embedding, (x_Block1, x_Block2, x_Block3, x_input), \
@@ -493,7 +490,7 @@ def train_test():
                         score_norm = torch.sum(map_x)/torch.sum(binary_mask[:,frame_t,:,:])
                         map_score += score_norm
 
-                        if i < 10:
+                        if ((epoch+1) % 10 == 0) and (i < 10):
                             mMap_rgb = ValidFeatureMap(orign_img, sn, x_input, x_Block1, x_Block2, x_Block3, map_x, writer, t, epoch, spoof_label, TAG="RGB")
                             mMap_ir = ValidFeatureMap(inputs_ir[:,frame_t,:,:,:], sn, x2, x_Block1_M2, x_Block2_M2, x_Block3_M2, map_x, writer, t, epoch, spoof_label, TAG="IR")
                             mMap_depth = ValidFeatureMap(inputs_depth[:,frame_t,:,:,:], sn, x3, x_Block1_M3, x_Block2_M3, x_Block3_M3, map_x, writer, t, epoch, spoof_label, TAG="DEPTH")
@@ -503,7 +500,7 @@ def train_test():
                             else:
                                 writer.add_image(f"epoch_{epoch}/Valid_Living_{sn}/rgb_ir_depth", merge_heatmap, t, dataformats="HWC")
 
-                            FeatureMapTList.append(mMap_rgb)  
+                            # FeatureMapTList.append(mMap_rgb)  
 
                     map_score = map_score/inputs.shape[1]                                           
                     
@@ -558,9 +555,9 @@ if __name__ == "__main__":
     parser.add_argument('--batchsize', type=int, default=4, help='initial batchsize')  #default=9  
     parser.add_argument('--step_size', type=int, default=20, help='how many epochs lr decays once')  # 500  | DPC = 400
     parser.add_argument('--gamma', type=float, default=0.5, help='gamma of optim.lr_scheduler.StepLR, decay of lr')
-    parser.add_argument('--echo_batches', type=int, default=10, help='how many batches display once')  # 50
-    parser.add_argument('--epochs', type=int, default=50, help='total training epochs')
-    parser.add_argument('--log', type=str, default="CDCN_3modality_P1_4@1_TEST", help='log and save model name')
+    parser.add_argument('--echo_batches', type=int, default=1000, help='how many batches display once')  # 50
+    parser.add_argument('--epochs', type=int, default=100, help='total training epochs')
+    parser.add_argument('--log', type=str, default="CDCN_3modality_ALL_GRAD2", help='log and save model name')
     parser.add_argument('--finetune', action='store_true', default=False, help='whether finetune other models')
     parser.add_argument('--theta', type=float, default=0.7, help='hyper-parameters in CDCNpp')
     parser.add_argument('--thres', type=float, default=0.95, help='threshold of predict binary mask')

@@ -1,4 +1,4 @@
-# [CDCN_Multi-modal](https://docs.google.com/presentation/d/1FkZ9dRnFEa5QCz-b2-X05wJCHu0KLcUD4RgGdar81_0/edit?usp=sharing)
+# [CDCN_Multi-modal](https://github.com/Leyan529/Face-Anti-Spoof/files/11086307/Multi-Modal.Face.Anti-Spoofing.Based.on.Central.Difference.Networks.pdf)
 In these repository invloves 3 experminent.
 1. Multi-Modal CDCNs(rgb/ir/depth)
 2. Multi-Modal CDCNs(rgb/depth)

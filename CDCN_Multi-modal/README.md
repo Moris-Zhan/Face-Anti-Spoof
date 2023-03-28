@@ -34,3 +34,7 @@ In these repository invloves 3 experminent.
 | Multi-Modal CDCN | Merge Multi-ethnicity&PAI | 31.48 | 44.44 | 53.7 | 66.66 | 0.5 |
 
 * Due to the difference in depth attributes between the surfing tech dataset and the casia-cefa dataset, there are many false detections relying on the module of the depth pattern.
+
+# Reference
+* [Multi-Modal Face Anti-Spoofing Based on Central Difference Networks](https://arxiv.org/abs/2004.08388)
+* [CDCN](https://github.com/ZitongYu/CDCN/tree/master/FAS_challenge_CVPRW2020/Track1%20Multi-modal/model1_2_pytorch)

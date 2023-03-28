@@ -203,10 +203,17 @@ class Spoofing_train(Dataset):
         videoname = str(self.landmarks_frame.iloc[idx, 0])
         image_path = os.path.join(self.root_dir, videoname)
         
-        videoname_ir = videoname[:18] + 'ir/' + videoname[-8:]
+        # videoname_ir = videoname[:18] + 'ir/' + videoname[-8:]
+        # ir_path = os.path.join(self.root_dir, videoname_ir)
+        
+        # videoname_depth = videoname[:18] + 'depth/' + videoname[-8:]
+        # depth_path = os.path.join(self.root_dir, videoname_depth)
+
+        videoname_l = videoname.split("/")
+        videoname_ir = os.path.join(videoname_l[0], videoname_l[1]) + '/ir/' + os.path.basename(videoname)
         ir_path = os.path.join(self.root_dir, videoname_ir)
         
-        videoname_depth = videoname[:18] + 'depth/' + videoname[-8:]
+        videoname_depth = os.path.join(videoname_l[0], videoname_l[1]) + '/depth/' + os.path.basename(videoname)
         depth_path = os.path.join(self.root_dir, videoname_depth)
     
     

@@ -402,5 +402,363 @@ class CDCN_3modality2(nn.Module):
         
         map_x = x.squeeze(1)
         
-        return map_x, x_concat_M1, x_Block1_M1, x_Block2_M1, x_Block3_M1, x_input
+        return map_x, x_concat_M1, (x_Block1_M1, x_Block2_M1, x_Block3_M1, x_input), \
+                                    (x_Block1_M2, x_Block2_M2, x_Block3_M2, x2), \
+                                    (x_Block1_M3, x_Block2_M3, x_Block3_M3, x3), \
+
+############################################
+#  			Multi-modal (remove IR)
+############################################
+
+class CDCN_2modality(nn.Module):
+
+    def __init__(self, basic_conv=Conv2d_cd, theta=0.7):   
+        super(CDCN_2modality, self).__init__()
+        
+        
+        self.conv1_M1 = nn.Sequential(
+            basic_conv(3, 64, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),    
+        )
+        
+        self.Block1_M1 = nn.Sequential(
+            basic_conv(64, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            
+        )
+        
+        self.Block2_M1 = nn.Sequential(
+            basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),  
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )
+        
+        self.Block3_M1 = nn.Sequential(
+            basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )       
+               
+        self.conv1_M3 = nn.Sequential(
+            basic_conv(3, 64, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),    
+        )
+        
+        self.Block1_M3 = nn.Sequential(
+            basic_conv(64, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            
+        )
+        
+        self.Block2_M3 = nn.Sequential(
+            basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),  
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )
+        
+        self.Block3_M3 = nn.Sequential(
+            basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )
+        
+        self.lastconv1_M1 = nn.Sequential(
+            basic_conv(128*3, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),    
+        )
+       
+        self.lastconv1_M3 = nn.Sequential(
+            basic_conv(128*3, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),    
+        )
+        
+        
+        self.lastconv2 = nn.Sequential(
+            basic_conv(128*2, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),    
+        )
+        
+        
+        self.lastconv3 = nn.Sequential(
+            basic_conv(128, 1, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.ReLU(),    
+        )
+        
+        
+        self.downsample32x32 = nn.Upsample(size=(32, 32), mode='bilinear')
+
+ 
+    def forward(self, x1, x2, x3):	    	
+        
+        # RGB
+        x_input = x1
+        x = self.conv1_M1(x1)		   
+        
+        x_Block1_M1 = self.Block1_M1(x)	    	    	
+        x_Block1_32x32_M1 = self.downsample32x32(x_Block1_M1)   
+        
+        x_Block2_M1 = self.Block2_M1(x_Block1_M1)	    
+        x_Block2_32x32_M1 = self.downsample32x32(x_Block2_M1)   
+        
+        x_Block3_M1 = self.Block3_M1(x_Block2_M1)	    
+        x_Block3_32x32_M1 = self.downsample32x32(x_Block3_M1)  
+        
+        x_concat_M1 = torch.cat((x_Block1_32x32_M1,x_Block2_32x32_M1,x_Block3_32x32_M1), dim=1) 
+        
+        # Depth
+        x = self.conv1_M3(x3)		   
+        
+        x_Block1_M3 = self.Block1_M3(x)	    	    	
+        x_Block1_32x32_M3 = self.downsample32x32(x_Block1_M3)   
+        
+        x_Block2_M3 = self.Block2_M3(x_Block1_M3)	    
+        x_Block2_32x32_M3 = self.downsample32x32(x_Block2_M3)   
+        
+        x_Block3_M3 = self.Block3_M3(x_Block2_M3)	    
+        x_Block3_32x32_M3 = self.downsample32x32(x_Block3_M3)   
+        
+        x_concat_M3 = torch.cat((x_Block1_32x32_M3,x_Block2_32x32_M3,x_Block3_32x32_M3), dim=1)
+        
+
+        
+        x_M1 = self.lastconv1_M1(x_concat_M1)    
+        x_M3 = self.lastconv1_M3(x_concat_M3)    
+        
+        x = torch.cat((x_M1,x_M3), dim=1)
+        
+        x = self.lastconv2(x)    
+        x = self.lastconv3(x)    
+        
+        map_x = x.squeeze(1)
+        
+        return map_x, x_concat_M1, (x_Block1_M1, x_Block2_M1, x_Block3_M1, x_input), \
+                                    (x_Block1_M3, x_Block2_M3, x_Block3_M3, x3), \
+
+#######################################################
+#  			Multi-modal (remove IR, remove mid)
+#######################################################
+
+class CDCN_2modality_lowhigh(nn.Module):
+
+    def __init__(self, basic_conv=Conv2d_cd, theta=0.7):   
+        super(CDCN_2modality_lowhigh, self).__init__()
+        
+        
+        self.conv1_M1 = nn.Sequential(
+            basic_conv(3, 64, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),    
+        )
+        
+        self.Block1_M1 = nn.Sequential(
+            basic_conv(64, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            
+        )
+        
+        # self.Block2_M1 = nn.Sequential(
+        #     basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+        #     nn.BatchNorm2d(128),
+        #     nn.ReLU(),   
+        #     basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+        #     nn.BatchNorm2d(196),
+        #     nn.ReLU(),  
+        #     basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+        #     nn.BatchNorm2d(128),
+        #     nn.ReLU(),  
+        #     nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        # )
+        
+        self.Block3_M1 = nn.Sequential(
+            basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )       
+               
+        self.conv1_M3 = nn.Sequential(
+            basic_conv(3, 64, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),    
+        )
+        
+        self.Block1_M3 = nn.Sequential(
+            basic_conv(64, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            
+        )
+        
+        # self.Block2_M3 = nn.Sequential(
+        #     basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+        #     nn.BatchNorm2d(128),
+        #     nn.ReLU(),   
+        #     basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+        #     nn.BatchNorm2d(196),
+        #     nn.ReLU(),  
+        #     basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+        #     nn.BatchNorm2d(128),
+        #     nn.ReLU(),  
+        #     nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        # )
+        
+        self.Block3_M3 = nn.Sequential(
+            basic_conv(128, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            basic_conv(128, 196, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(196),
+            nn.ReLU(),  
+            basic_conv(196, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),   
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )
+        
+        self.lastconv1_M1 = nn.Sequential(
+            basic_conv(128*2, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),    
+        )
+       
+        self.lastconv1_M3 = nn.Sequential(
+            basic_conv(128*2, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),    
+        )
+        
+        
+        self.lastconv2 = nn.Sequential(
+            basic_conv(128*2, 128, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),    
+        )
+        
+        
+        self.lastconv3 = nn.Sequential(
+            basic_conv(128, 1, kernel_size=3, stride=1, padding=1, bias=False, theta= theta),
+            nn.ReLU(),    
+        )
+        
+        
+        self.downsample32x32 = nn.Upsample(size=(32, 32), mode='bilinear')
+
+ 
+    def forward(self, x1, x2, x3):	    	
+        
+        # RGB
+        x_input = x1
+        x = self.conv1_M1(x1)		   
+        
+        x_Block1_M1 = self.Block1_M1(x)	    	# 4, 64, 256, 256    	
+        x_Block1_32x32_M1 = self.downsample32x32(x_Block1_M1)   # 4, 128, 32, 32
+        
+        # x_Block2_M1 = self.Block2_M1(x_Block1_M1)	    
+        # x_Block2_32x32_M1 = self.downsample32x32(x_Block2_M1)   
+        
+        x_Block3_M1 = self.Block3_M1(x_Block1_M1)	    
+        x_Block3_32x32_M1 = self.downsample32x32(x_Block3_M1)  
+        
+        # x_concat_M1 = torch.cat((x_Block1_32x32_M1,x_Block2_32x32_M1,x_Block3_32x32_M1), dim=1) 
+        x_concat_M1 = torch.cat((x_Block1_32x32_M1, x_Block3_32x32_M1), dim=1) 
+        
+        # Depth
+        x = self.conv1_M3(x3)		   
+        
+        x_Block1_M3 = self.Block1_M3(x)	    	    	
+        x_Block1_32x32_M3 = self.downsample32x32(x_Block1_M3)   
+        
+        # x_Block2_M3 = self.Block2_M3(x_Block1_M3)	    
+        # x_Block2_32x32_M3 = self.downsample32x32(x_Block2_M3)   
+        
+        x_Block3_M3 = self.Block3_M3(x_Block1_M3)	    
+        x_Block3_32x32_M3 = self.downsample32x32(x_Block3_M3)   
+        
+        # x_concat_M3 = torch.cat((x_Block1_32x32_M3,x_Block2_32x32_M3,x_Block3_32x32_M3), dim=1)
+        x_concat_M3 = torch.cat((x_Block1_32x32_M3, x_Block3_32x32_M3), dim=1)
+        
+
+        
+        x_M1 = self.lastconv1_M1(x_concat_M1)    
+        x_M3 = self.lastconv1_M3(x_concat_M3)    
+        
+        x = torch.cat((x_M1,x_M3), dim=1)
+        
+        x = self.lastconv2(x)    
+        x = self.lastconv3(x)    
+        
+        map_x = x.squeeze(1)
+        
+        return map_x, x_concat_M1, (x_Block1_M1, x_Block1_M1, x_Block3_M1, x_input), \
+                                    (x_Block1_M3, x_Block1_M3, x_Block3_M3, x3), \
 

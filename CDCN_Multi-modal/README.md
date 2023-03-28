@@ -19,16 +19,15 @@ In these repository invloves 3 experminent.
 
 # Result
 
-## Test Inference Time with different format model
+#### Test Inference Time with different format model
 | Format | GPU / CPU | Inference Time(s) | Image size |
 | --- | --- | --- | --- |
 | Pytorch (pkl) | NVIDIA GeForce RTX 2080 SUPER | 0.83~0.87 | 256x256 |
 | Pytorch (pkl) | Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz | 379s | 256x256 |
 | Python (onnx) | Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz | 47~49 | 256x256 |
 
-## Test Performance in surfing dataset
-| Metric | DataType | APCER(%) | BPCER(%) | ACER(%) | Accuracy
-(%) | Thres |
+#### Test Performance in surfing dataset
+| Metric | DataType | APCER(%) | BPCER(%) | ACER(%) | Accuracy(%) | Thres |
 | --- | --- | --- | --- | --- | --- | --- |
 | Multi-Modal CDCN | Merge Multi-ethnicity&PAI | 0 | 100 | 50 | 85.7 | 0.9 |
 | Multi-Modal CDCN | Merge Multi-ethnicity&PAI | 14.81 | 77.77 | 53.7 | 76.19 | 0.7 |

@@ -1,29 +1,40 @@
 ## FeatherNets for [Face Anti-spoofing Attack Detection Challenge@CVPR2019](https://competitions.codalab.org/competitions/20853#results)[1]
 
-## The detail in our paper：[FeatherNets: Convolutional Neural Networks as Light as Feather for Face Anti-spoofing](https://arxiv.org/pdf/1904.09290)
+## The detail in orign paper：[FeatherNets: Convolutional Neural Networks as Light as Feather for Face Anti-spoofing](https://arxiv.org/pdf/1904.09290)
 
-# FeatherNetB Inference Time **1.87ms** In CPU(i7,OpenVINO)
+# My extend of Multi-Modal Face Spoof Model
+| Model | Multi-Modal FeatherNetB | Multi-Modal FeatherNetB | Multi-Modal FeatherNetB |
+| --- | --- | --- | --- |
+ | Fusion | concat + linear mapping | concat + 3 resnet block + adaptive pooling | cdcn fusion(last 2 layers cdc convolution) |
+| input | 224 x 224 | 224 x 224 | 224 x 224 |
+| Total params | 1.06MB | 45.28MB | 3.86MB |
+| Number of FLOPs | 296.87MFlops | 400.21MFlops | 434.21MFlops |
+| Inference Time | 13ms | 16ms | 14ms |
 
-# Params only 0.35M!! FLOPs 80M !! 
+# Results on the validation set (Experiment - Multi-Modal FeatherNetB Fusion)
+- Batch: 32
+- Train on Nvidia-2080 SUPER 8G
+- CPU: Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz
+- Train Set: CASIA-SURF CEFA (4@1 + 4@2 + 4@3 Train)
+- Test Set: CASIA-SURF CEFA (4@1 + 4@2 + 4@3 Test)
 
+| Fusion Method | Acc(%) | EER(%) | TPR@FPR=10E-2(%) | TPR@FPR=10E-3(%) | APCER(%) | BPCER(%) | ACER(%) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Featue-Level | 88.321 | 0.109524 | 0.301429  | 0.075714  | 0.148571 | 0.02142 | 0.085 |
+| PipeNet Fusion | 97.321 | 0.007143 | 0.994286 | 0.981429  | 0.034286 | 0.004286 | 0.01928 |
+| CDCN Fusion | 98.929 | 0.004286 |  0.997143  | 0.988571 | 0.01381 | 0.001429 | 0.007619 |
 
-In the first phase,we only use depth data for training ,and after ensemble ACER reduce to 0.0.
-But in the test phase, when we only use depth data, the best ACER is 0.0016.This result is not very satisfactory. If the security is not very high, just using single-mode data is a very good choice. In order to achieve better results, we use IR data to jointly predict the final result.
-# Results on the validation set
+# Compare to paper original model
+| Metric / Train hours | Acc(%) | EER(%) | TPR@FPR=10E-2(%) | TPR@FPR=10E-3(%) | APCER(%) | BPCER(%) | ACER(%) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| FeatherNetA | 98.607 | 0.008571 | 0.991429 | 0.978571 | 0.017619 | 0.002857 | 0.0102 |
+| FeatherNetB | 99.07 | 0.004 | 0.997 | 0.99 | 0.011 | 0.0028 | 0.0071 |
+| PipeNet Fusion | 97.321 | 0.007143 | 0.994286 | 0.981429 | 0.034286 | 0.004286 | 0.01928 |
+| CDCN Fusion | 98.929 | 0.004286 |  0.997143  | 0.988571 | 0.01381 | 0.001429 | 0.007619 |
 
-|model name | ACER|TPR@FPR=10E-2|TPR@FPR=10E-3|FP|FN|epoch|params|FLOPs|
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-|FishNet150| 0.00144|0.999668|0.998330|19|0|27|24.96M|6452.72M|
-|FishNet150| 0.00181|1.0|0.9996|24|0|52|24.96M|6452.72M|
-|FishNet150| 0.00496|0.998664|0.990648|48|8|16|24.96M|6452.72M|
-|MobileNet v2|0.00228|0.9996|0.9993|28|1|5|2.23M|306.17M
-|MobileNet v2|0.00387|0.999433|0.997662|49|1|6|2.23M|306.17M
-|MobileNet v2|0.00402|0.9996|0.992623|51|1|7|2.23M|306.17M
-|MobileLiteNet54|0.00242|1.0|0.99846|32|0|41|0.57M|270.91M|
-|MobileLiteNet54-se|0.00242|1.0|0.996994|32|0|69|0.57M|270.91M|
-|FeatherNetA|0.00261|1.00|0.961590|19|7|51|0.35M|79.99M|
-|FeatherNetB|0.00168|1.0|0.997662|20|1|48|0.35M|83.05M|
-|**Ensembled all**|0.0000|1.0|1.0|0|0|-|-|-|
+* The performance of Pipenet Fusion is catching up with that of the single-modal FeatherNetB in terms of accuracy.
+* The performance of CDCN Fusion is better than that of Pipenet Fusion and even surpasses that of single-modal FeatherNetA.
+
 
 # Our Pretrained Models(model checkpoints)
 Link:https://pan.baidu.com/s/1vlKePiWYFYNxefD9Ld16cQ 
@@ -32,17 +43,6 @@ Key:xzv8
 decryption key: OTC-MMFD-11846496
 [Google Dirve](https://drive.google.com/open?id=1F_du_iarTepKKYgXpk_cJNGRb34rlJ5c)
 
-## Recent Update
-
-**2019.4.4**: updata data/fileList.py
-
-**2019.3.10**:code upload for the origanizers to reproduce.
-
-**2019.4.23**:add our paper FeatherNets
-
-**2019.8.4**: release our model checkpoint
-
-**2019.09.25**: early mutilmodal method
 
 # Prerequisites
 
@@ -50,40 +50,6 @@ decryption key: OTC-MMFD-11846496
 ```
 conda env create -n env_name -f env.yml
 ```
-
-## Data
-
-
-### [CASIA-SURF Dataset](https://arxiv.org/abs/1812.00408)[2]
-
-How to download CASIA-SURF dataset?
-
-1.Download, read the Contest Rules, and sign the agreement,[link](http://www.google.com/url?q=http%3A%2F%2Fwww.cbsr.ia.ac.cn%2Fusers%2Fjwan%2Fdatabase%2FCASIA-SURF_agreement.pdf&sa=D&sntz=1&usg=AFQjCNHFuTTHdLXoJbtuuxf4nvgT8A4Nzw)
-
-2. Send the your signed agreements  to: Jun Wan, jun.wan@ia.ac.cn 
-
-### Our Private Dataset(Available Soon)
-
-
-
-### Data index tree
-```
-├── data
-│   ├── our_realsense
-│   ├── Training
-│   ├── Val
-│   ├── Testing
-```
-Download and unzip our private Dataset into the ./data directory. Then run data/fileList.py to prepare the file list.
-
-### Data Augmentation
-
-| Method | Settings |
-| -----  | -------- |
-| Random Flip | True |
-| Random Crop | 8% ~ 100% |
-| Aspect Ratio| 3/4 ~ 4/3 |
-| Random PCA Lighting | 0.1 |
 
 
 # Train the model
@@ -121,11 +87,24 @@ python main.py --config="cfgs/FeatherNetB-32.yaml" --b 32 --lr 0.01  --every-dec
 
 ```
 
+#### 7Train FeatherNetB (My Custom)
+```
+python main.py --config="cfgs/FeatherNet-modal-fusion.yaml" --b 32 --lr 0.01  --every-decay 60 --fl-gamma 3 >> FeatherNet-modal-fusion-bs32--train.log
+
+```
+
 
 ## How to create a  submission file
 example:
-> python main.py --config="cfgs/mobilenetv2.yaml" --resume ./checkpoints/mobilenetv2_bs32/_4_best.pth.tar --val True --val-save True
+> python main3modal.py --config="cfgs/mobilenetv2.yaml" --resume ./checkpoints/mobilenetv2_bs32/_4_best.pth.tar --val True --val-save True
 
+# Transform to onnx
+```
+python Feather_pytorch_2_onnx.py
+```
+```
+python Feather_pytorch_3modal_onnx.py
+```
 
 # Ensemble 
 
@@ -138,14 +117,3 @@ run EnsembledCode_val.ipynb
 run EnsembledCode_test.ipynb
 ```
 **notice**:Choose a few models with large differences in prediction results
-
-# Serialized copy of the trained model
-You can download my artifacts folder which I used to generate my final submissions: Available Soon
-
->[1] ChaLearn Face Anti-spoofing Attack Detection Challenge@CVPR2019,[link](https://competitions.codalab.org/competitions/20853?secret_key=ff0e7c30-e244-4681-88e4-9eb5b41dd7f7)
-
->[2] Shifeng Zhang, Xiaobo Wang, Ajian Liu, Chenxu Zhao, Jun Wan, Sergio Escalera, Hailin Shi, Zezheng Wang, Stan Z. Li, " CASIA-SURF: A Dataset and Benchmark for Large-scale Multi-modal Face Anti-spoofing ", arXiv, 2018 [PDF](https://arxiv.org/abs/1812.00408)
-
-# Multimodal Methods
-
-In the early days of the competition, I thought about some other multimodal methods. You can view the network structure here.(multimodal_fusion_method.md) I have not been able to continue because of limited computing resources.

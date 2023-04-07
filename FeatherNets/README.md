@@ -120,5 +120,7 @@ run EnsembledCode_test.ipynb
 **notice**:Choose a few models with large differences in prediction results
 
 # Demo
+![Live](https://user-images.githubusercontent.com/24097516/230597002-55a1e107-4bb9-4fc6-b07f-f6d5e3f40f73.jpg)
+![Spoof](https://user-images.githubusercontent.com/24097516/230597013-596d1bdd-59ab-4540-b9a1-a7f091704e41.jpg)
 
-https://user-images.githubusercontent.com/24097516/230592006-0f11d964-8d2a-46f7-999f-72b5d7651960.mp4
+
